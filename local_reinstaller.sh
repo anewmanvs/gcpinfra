@@ -1,0 +1,14 @@
+#!/bin/bash
+
+this_local="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
+# removes local installation
+pip uninstall gcpinfra -y
+rtn=$?
+if [ $rtn -ne 0 ]; then
+	echo -e "Uninstall script failed."
+	exit 1
+fi
+
+# realiza a nova instalação
+$this_local/local_installer.sh
