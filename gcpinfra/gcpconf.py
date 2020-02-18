@@ -33,7 +33,9 @@ class GCPConf:
                 self.path = self.parent + '/auth/auth.json'
 
             if not os.path.exists(self.path):
-                raise ValueError("Nenhum JSON encontrado em '{}'".format(self.path))
+                raise ValueError("No JSON found in '{}'. "
+                                 "Please create a 'GCPConf' object"
+                                 " with a valid path".format(self.path))
 
             os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.path
 
