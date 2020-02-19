@@ -21,7 +21,7 @@ setuptools.setup(
     download_url='https://github.com/anewmanvs/gcpinfra/archive/v{}.tar.gz'.format(
         version),
     packages=setuptools.find_packages(),
-    keywords=['gcp', 'google cloud platform', 'framework']
+    keywords=['gcp', 'google cloud platform', 'framework'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
