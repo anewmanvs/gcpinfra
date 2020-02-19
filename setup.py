@@ -4,19 +4,22 @@ import setuptools
 
 # pylint: disable=invalid-name
 
+version='0.0.2'
+
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name='gcpinfra',
-    version='0.0.1',
+    version=version,
     author='Alex Newman',
     author_email='a.newmanvs@gmail.com',
     description='Google Cloud Platform non-official framework',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/anewmanvs/gcpinfra',
-    download_url='https://github.com/anewmanvs/gcpinfra/archive/v0.0.1.tar.gz',
+    download_url='https://github.com/anewmanvs/gcpinfra/archive/v{}.tar.gz'.format(
+        version),
     packages=setuptools.find_packages(),
     keywords=['gcp', 'google cloud platform', 'framework']
     classifiers=[
