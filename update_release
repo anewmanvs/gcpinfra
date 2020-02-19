@@ -62,8 +62,9 @@ git push origin $cur_branch
 # add new release to github. Your github credentials may be asked
 hub release create $2 "v$new_version" -m "$release_msg-$1-v$new_version"
 
-# build package before pushing it to pypi
+# build package before pushing it to pypi. Your PyPi credentials may be asked
 python setup.py sdist
+echo -e "Uploading to PyPi. Your PyPi credentials may be asked"
 twine upload dist/*  # push to PyPi
 rtn=$?
 
