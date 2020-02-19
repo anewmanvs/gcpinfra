@@ -35,7 +35,8 @@ setuptools.setup(
         'google-cloud-storage>=1.26.0',
         'google-cloud-dataproc>=0.6.1',
         'google-auth>=1.11.2',
-        'crc32c>=2.0'
+        'crc32c>=2.0',
+        'pyarrow>=0.16.0'
     ],
     python_requires='>=3'
 )
