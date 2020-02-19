@@ -1,0 +1,81 @@
+#!/bin/bash
+
+## Local updater
+## Alex Newman - 19/02/2020
+## -------------------------
+## In order for this to work you must have:
+## 'hub' - check: https://github.com/github/hub
+## 'git' - check: https://git-scm.com/
+## 'python3' - check: https://www.python.org/
+## 'twine' - check: https://pypi.org/project/twine/
+## -------------------------
+## Usage:
+## ./update_release (major | minor | patch) [-p]
+## - First arg indicates the release type and is NOT-OPTIONAL
+## - Second arg indicates if it is a pre-release and is OPTIONAL
+## -------------------------
+## This script will calculate the new version number, commit the modifications to
+## setup.py (may require your credentials in the process), push the master branch,
+## add a new release in github and upload the package to PyPi
+##
+## If your current branch isn't master, you will have to merge to master before
+## using this script.
+
+if [ "$1" != "major" ] && [ "$1" != "minor" ] && [ "$1" != "patch" ]; then
+    echo -e "Not supported release type. Choose between 'major', 'minor' and 'patch'"
+    exit 1
+fi
+
+if [ -z "$2" ]; then
+    release_msg="release"
+elif [ "$2" != "-p" ]; then
+    echo -e "Not supported option $2."
+    echo -e "Leave it empty or provide '-p' to update to a pre-release"
+    exit 1
+else
+    release_msg="pre-release"
+fi
+
+# calculate new version number
+new_version=$(python update_release.py $1 -y)
+rtn=$?
+if [ $rtn -ne 0 ]; then
+    echo -e "New version failed"
+    exit 1
+fi
+echo -e "New version number will be v$new_version"
+
+# test if current branch is master
+cur_branch=$(git rev-parse --abbrev-ref HEAD)
+if [ "$cur_branch" != "master" ]; then
+    echo -e "The current branch is '$cur_branch'."
+    echo -e "Please switch and merge to 'master' to continue."
+    exit 1
+fi
+
+# commit modifications and push current branch
+echo -e "Setting up commit and push in branch '$cur_branch'"
+git add setup.py
+git commit -m "new $release_msg v$new_version"
+git push origin $cur_branch
+
+# add new release to github. Your github credentials may be asked
+hub release create $2 "v$new_version" -m "$release_msg-$1-v$new_version"
+
+# build package before pushing it to pypi
+python setup.py sdist
+twine upload dist/*  # push to PyPi
+rtn=$?
+
+# clear the mess created in the cur dir
+rm -rf dist/
+rm -rf gcpinfra.egg-info
+
+if [ $rtn -ne 0 ]; then
+    echo -e "There was an error during the package upload to PyPi."
+    echo -e "Please check the console for more detail."
+    exit 1
+else
+    echo -e "Process finished successfuly"
+    exit 0
+fi
