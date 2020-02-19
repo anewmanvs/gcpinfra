@@ -11,4 +11,4 @@ if [ $rtn -ne 0 ]; then
 fi
 
 # realiza a nova instalação
-$this_local/local_installer.sh
+$this_local/local_installer

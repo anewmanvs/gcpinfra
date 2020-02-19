@@ -28,7 +28,8 @@ class GCPConf:
             """Construtor da classe interna."""
 
             self.parent = str(pathlib.Path(__file__).parent.parent.absolute())
-            self.tempdir = self.parent + '/temp'
+            self.tempdir = '/tmp'
+            self.path = path
             if path is None:
                 self.path = self.parent + '/auth/auth.json'
 
