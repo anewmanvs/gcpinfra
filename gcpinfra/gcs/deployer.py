@@ -9,8 +9,8 @@ import re
 
 from glob import glob
 
-from gcpinfra.gcpconf import GCPConf
-from gcpinfra.gcscomms import GCSComms
+from gcpinfra.gcp.conf import GCPConf
+from gcpinfra.gcs.comms import GCSComms
 
 class GCSDeployer:
     """

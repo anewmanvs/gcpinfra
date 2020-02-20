@@ -9,7 +9,7 @@ information
 
 # pylint: disable=too-few-public-methods, invalid-name, too-many-arguments
 
-from gcpinfra.gcpcore import VALID_MACHINES, GCPCore
+from gcpinfra.gcp.core import VALID_MACHINES, GCPCore
 
 def valid_machine_type(machine_type):
     """Checks if the informed machine type is valid or not."""

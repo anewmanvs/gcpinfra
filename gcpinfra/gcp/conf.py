@@ -86,7 +86,7 @@ class GCPConf:
                 response = self.get(url.format(self.project_id, self.std_region))
 
                 data = json.loads(response.data)
-                
+
                 if response.status == 200:
                     if not data['zones']:
                         if self.verbose:

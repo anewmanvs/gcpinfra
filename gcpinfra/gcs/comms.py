@@ -17,7 +17,7 @@ import pandas as pd
 from google.cloud import storage
 from crc32c import crc32
 
-from gcpinfra.gcpconf import GCPConf
+from gcpinfra.gcp.conf import GCPConf
 
 class GCSComms:
     """

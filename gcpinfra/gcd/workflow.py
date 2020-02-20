@@ -13,9 +13,9 @@ from google.cloud.dataproc_v1.gapic.transports import \
     workflow_template_service_grpc_transport as wtsgt
 from google.api_core.exceptions import GoogleAPICallError
 
-from gcpinfra.gcpconf import GCPConf
-from gcpinfra.gcdjobs import GCDJob
-from gcpinfra.gceclusters import GCECluster
+from gcpinfra.gcp.conf import GCPConf
+from gcpinfra.gcd.jobs import GCDJob
+from gcpinfra.gce.clusters import GCECluster
 
 class GCDWorkflow:
     """

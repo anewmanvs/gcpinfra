@@ -7,8 +7,8 @@ A bunch of configurations are not yet ready to be used.
 # pylint: disable=too-few-public-methods, too-many-arguments
 # pylint: disable=too-many-instance-attributes
 
-from gcpinfra.gcpcore import GCPCore
-from gcpinfra.gceconf import GCEMachine, GCEDisk
+from gcpinfra.gcp.core import GCPCore
+from gcpinfra.gce.conf import GCEMachine, GCEDisk
 
 def std_machine(instances=1):
     """Standard machine."""

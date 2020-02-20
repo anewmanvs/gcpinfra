@@ -6,7 +6,7 @@ Here you will find implementations for each type of job.
 
 # pylint: disable=invalid-name, too-few-public-methods, too-many-arguments
 
-from gcpinfra.gcpcore import GCPCore, VALID_JOBS
+from gcpinfra.gcp.core import GCPCore, VALID_JOBS
 
 def valid_job_type(job_type):
     """Checks if the informed job type is valid or not."""
