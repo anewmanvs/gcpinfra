@@ -12,6 +12,7 @@ import os
 import re
 import json
 import pathlib
+from warnings import warn
 
 from google.auth import default
 from google.auth.transport.urllib3 import AuthorizedHttp
@@ -24,9 +25,10 @@ class GCPConf:
     class __GCPConf:
         """Internal class."""
 
-        def __init__(self, path):
+        def __init__(self, path, verbose):
             """Construtor da classe interna."""
 
+            self.verbose = verbose
             self.parent = str(pathlib.Path(__file__).parent.parent.absolute())
             self.tempdir = '/tmp'
             self.path = path
@@ -47,6 +49,13 @@ class GCPConf:
             # call this only after std_region
             self.std_zone_uri = self.__get_std_zone()
             self.std_zone = self.get_zone_name(self.std_zone_uri)
+            # if both are None inform a standard
+            if self.std_zone is None:
+                self.std_zone = 'southamerica-east1-a'
+            if self.std_zone_uri is None:
+                self.std_zone_uri = ('https://www.googleapis.com/compute/v1/'
+                                     'projects/gm-mateus-estat/zones/southamerica'
+                                     '-east1-a')
 
         @staticmethod
         def remove(filename):
@@ -74,20 +83,24 @@ class GCPConf:
             url = 'https://compute.googleapis.com/compute/v1/projects/{}/regions/{}'
 
             try:
-                data = self.get(url.format(self.project_id, self.std_region))
+                response = self.get(url.format(self.project_id, self.std_region))
 
-                if data.status == 200:
-                    data = json.loads(data.data)
+                data = json.loads(response.data)
+                
+                if response.status == 200:
+                    if not data['zones']:
+                        if self.verbose:
+                            print('No zone available for region {}'.format(
+                                self.std_region))
+                        return None
 
-                if not data['zones']:
-                    if verbose:
-                        print('No zone available for region {}'.format(
-                            self.std_region))
+                    return data['zones'][0]  # returns the first zone
+                else:  # something wrong happened
+                    warn('Configuration works but is limited: {}'.format(
+                        data['error']['message']))
                     return None
-
-                return data['zones'][0]  # returns the first zone
             except Exception as excp:
-                if verbose:
+                if self.verbose:
                     print('Failed to retrieve region information: {}'.format(excp))
                 return None
 
@@ -105,9 +118,9 @@ class GCPConf:
         """Construtor singleton."""
 
         if GCPConf.__instance is None:
-            GCPConf.__instance = GCPConf.__GCPConf(path)
             if verbose:
-                print('Instantiating new GCPConf')
+                print('Instantiating new GCPConf in {}'.format(path))
+            GCPConf.__instance = GCPConf.__GCPConf(path, verbose)
         elif verbose:
             print('Using same GCPConf in {}'.format(GCPConf.__instance.path))
 
