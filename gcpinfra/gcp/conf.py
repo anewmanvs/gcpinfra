@@ -139,7 +139,7 @@ class GCPConf:
     def __init__(self, path=None, verbose=False):
         """Construtor singleton."""
 
-        if GCPConf.__instance:
+        if not GCPConf.__instance:
             GCPConf.__instance = GCPConf.__GCPConf(path, verbose)
         elif verbose:
             print('Using same GCPConf in {}'.format(GCPConf.__instance.path))
