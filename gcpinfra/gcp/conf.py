@@ -17,6 +17,12 @@ from warnings import warn
 from google.auth import default
 from google.auth.transport.urllib3 import AuthorizedHttp
 
+def valid_var_env():
+    """Checks if var env GOOGLE_APPLICATION_CREDENTIALS is correctly set."""
+
+    return ('GOOGLE_APPLICATION_CREDENTIALS' in os.environ
+            and os.environ['GOOGLE_APPLICATION_CREDENTIALS'])
+
 class GCPConf:
     """Singleton configuration class."""
 
@@ -34,13 +40,13 @@ class GCPConf:
             self.tempdir = '/tmp'
             self.path = path
 
-            if not self.path and not os.environ['GOOGLE_APPLICATION_CREDENTIALS']:
+            if not self.path and not valid_var_env():
                 raise ValueError("GCPConf is singleton and the first instance must "
                                  "pass a valid 'path' to a JSON containing access "
                                  "keys to your service account.\nFallback to env "
                                  "variable GOOGLE_APPLICATION_CREDENTIALS did not "
                                  "work.")
-            elif os.environ['GOOGLE_APPLICATION_CREDENTIALS']:
+            elif valid_var_env():
                 self.path = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
                 warn("Param. 'path' invalid. Fallback using env var "
                      "GOOGLE_APPLICATION_CREDENTIALS.")
@@ -55,7 +61,7 @@ class GCPConf:
 
             self.__print('Instantiating new GCPConf in {}'.format(self.path))
 
-            # reads the data
+            # set credentials
             self.credentials, self.project_id = default(
                 scopes=['https://www.googleapis.com/auth/cloud-platform'])
             self.std_region = 'southamerica-east1'
