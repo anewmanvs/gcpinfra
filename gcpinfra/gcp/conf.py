@@ -28,19 +28,32 @@ class GCPConf:
         def __init__(self, path, verbose):
             """Construtor da classe interna."""
 
+            self.__valid = False
             self.verbose = verbose
             self.parent = str(pathlib.Path(__file__).parent.parent.absolute())
             self.tempdir = '/tmp'
             self.path = path
-            if path is None:
-                self.path = self.parent + '/auth/auth.json'
+
+            if not self.path and not os.environ['GOOGLE_APPLICATION_CREDENTIALS']:
+                raise ValueError("GCPConf is singleton and the first instance must "
+                                 "pass a valid 'path' to a JSON containing access "
+                                 "keys to your service account.\nFallback to env "
+                                 "variable GOOGLE_APPLICATION_CREDENTIALS did not "
+                                 "work.")
+            elif os.environ['GOOGLE_APPLICATION_CREDENTIALS']:
+                self.path = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+                warn("Param. 'path' invalid. Fallback using env var "
+                     "GOOGLE_APPLICATION_CREDENTIALS.")
 
             if not os.path.exists(self.path):
                 raise ValueError("No JSON found in '{}'. "
                                  "Please create a 'GCPConf' object"
                                  " with a valid path".format(self.path))
+            else:
+                os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.path
+                self.__valid = True
 
-            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.path
+            self.__print('Instantiating new GCPConf in {}'.format(self.path))
 
             # reads the data
             self.credentials, self.project_id = default(
@@ -56,6 +69,17 @@ class GCPConf:
                 self.std_zone_uri = ('https://www.googleapis.com/compute/v1/'
                                      'projects/gm-mateus-estat/zones/southamerica'
                                      '-east1-a')
+
+        def __print(self, msg):
+            """Prints message if verbose is set."""
+
+            if self.verbose:
+                print(msg)
+
+        def __bool__(self):
+            """Returns true if path is valid."""
+
+            return self.__valid
 
         @staticmethod
         def remove(filename):
@@ -84,14 +108,12 @@ class GCPConf:
 
             try:
                 response = self.get(url.format(self.project_id, self.std_region))
-
                 data = json.loads(response.data)
 
                 if response.status == 200:
                     if not data['zones']:
-                        if self.verbose:
-                            print('No zone available for region {}'.format(
-                                self.std_region))
+                        self.__print('No zone available for region {}'.format(
+                            self.std_region))
                         return None
 
                     return data['zones'][0]  # returns the first zone
@@ -100,8 +122,8 @@ class GCPConf:
                         data['error']['message']))
                     return None
             except Exception as excp:
-                if self.verbose:
-                    print('Failed to retrieve region information: {}'.format(excp))
+                self.__print('Failed to retrieve region information: {}'.format(
+                    excp))
                 return None
 
         @staticmethod
@@ -117,9 +139,7 @@ class GCPConf:
     def __init__(self, path=None, verbose=False):
         """Construtor singleton."""
 
-        if GCPConf.__instance is None:
-            if verbose:
-                print('Instantiating new GCPConf in {}'.format(path))
+        if GCPConf.__instance:
             GCPConf.__instance = GCPConf.__GCPConf(path, verbose)
         elif verbose:
             print('Using same GCPConf in {}'.format(GCPConf.__instance.path))
