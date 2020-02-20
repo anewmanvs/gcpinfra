@@ -10,7 +10,7 @@ to output the new version to be used.
 
 import sys
 from re import compile
-from operator import add
+from operator import add, mul
 
 setupfilename = 'setup.py'
 
@@ -63,7 +63,8 @@ version = pttn.findall(content)[0]
 # find new version
 updtmask = list(map(lambda x: int(x == param), suppargs))  # prepare addmask
 lnversion = list(map(add, map(int, version.split('.')), updtmask))  # apply addmask
-updtmask[0] = 1  # turn first position into 1 to prepare for mulmask
+occurr = updtmask.index(1)  # find where we updated
+updtmask[:occurr] = [1] * occurr  # prepare mulmask
 lnversion = [a*b for a, b in zip(lnversion, updtmask)]  # apply mulmask
 nversion = '{}.{}.{}'.format(*lnversion)
 
