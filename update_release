@@ -65,7 +65,7 @@ hub release create $2 "v$new_version" -m "$release_msg-$1-v$new_version"
 # build package before pushing it to pypi. Your PyPi credentials may be asked
 python setup.py sdist
 echo -e "Uploading to PyPi. Your PyPi credentials may be asked"
-twine upload dist/*  # push to PyPi
+twine upload --repository gcpinfra dist/*  # push to PyPi
 rtn=$?
 
 # clear the mess created in the cur dir

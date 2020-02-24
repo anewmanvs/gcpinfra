@@ -13,14 +13,24 @@ def valid_job_type(job_type):
 
     return job_type in VALID_JOBS
 
-def check_param_type(p, t, ignore_none=False):
+def check_param_type(p, t, ignore_none=False, param_name=''):
     """Checks if the informed param is the correct type."""
 
     if ignore_none and p is None:
         return
 
     if not isinstance(p, t):
-        raise ValueError("Param. '{}' must be a '{}'".format(p, type(p)))
+        raise ValueError("Param. '{}' must be a '{}'".format(param_name, t))
+
+def check_list_type(l, t, ignore_none=False, param_name=''):
+    """Checks if only the correct type is present in list values"""
+
+    if ignore_none and l is None:
+        return
+
+    if any(map(lambda x: not isinstance(x, t), l)):
+        raise ValueError("Param. '{}' must be filled with values of '{}'".format(
+            param_name, t))
 
 def nelnn(param):
     """Return true if 'param' is neither an empty list or none."""
@@ -49,7 +59,7 @@ class GCDJob(GCPCore):
     def add_conf(self, conf):
         """Adds job configuration."""
 
-        check_param_type(conf, dict)
+        check_param_type(conf, dict, param_name='conf')
         conf = {key: conf[key] for key in conf if nelnn(conf[key])}
         self.add_attr(self.job_type, conf)
 
@@ -64,15 +74,30 @@ class GCDPySparkJob(GCDJob):
                  other_files=None, archive_files=None, properties=None):
         """Constructor."""
 
-        check_param_type(main, str)  # required
-        check_param_type(step_id, str)  # required
+        check_param_type(main, str, param_name='main')  # required
+        check_param_type(step_id, str, param_name='step_id')  # required
 
-        check_param_type(args, list, ignore_none=True)  # optional
-        check_param_type(python_files, list, ignore_none=True)  # optional
-        check_param_type(jar_files, list, ignore_none=True)  # optional
-        check_param_type(other_files, list, ignore_none=True)  # optional
-        check_param_type(archive_files, list, ignore_none=True)  # optional
-        check_param_type(properties, list, ignore_none=True)  # optional
+        # optionals
+        check_param_type(args, list, ignore_none=True, param_name='args')
+        check_param_type(jar_files, list, ignore_none=True, param_name='jar_files')
+        check_param_type(python_files, list, ignore_none=True,
+                         param_name='python_files')
+        check_param_type(other_files, list, ignore_none=True,
+                         param_name='other_files')
+        check_param_type(archive_files, list, ignore_none=True,
+                         param_name='archive_files')
+        check_param_type(properties, dict, ignore_none=True,
+                         param_name='properties')
+
+        # check for correct internal type
+        check_list_type(args, str, ignore_none=True, param_name='args')
+        check_list_type(jar_files, str, ignore_none=True, param_name='jar_files')
+        check_list_type(python_files, str, ignore_none=True,
+                        param_name='python_files')
+        check_list_type(other_files, str, ignore_none=True,
+                        param_name='other_files')
+        check_list_type(archive_files, str, ignore_none=True,
+                        param_name='archive_files')
 
         conf = {
             'main_python_file_uri': main,
