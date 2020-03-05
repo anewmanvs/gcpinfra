@@ -62,8 +62,8 @@ class GCPConf:
             self.__print('Instantiating new GCPConf in {}'.format(self.path))
 
             # set credentials
-            self.credentials, self.project_id = default(
-                scopes=['https://www.googleapis.com/auth/cloud-platform'])
+            self.scopes = ['https://www.googleapis.com/auth/cloud-platform']
+            self.credentials, self.project_id = default(scopes=self.scopes)
             self.std_region = 'southamerica-east1'
             # call this only after std_region
             self.std_zone_uri = self.__get_std_zone()
