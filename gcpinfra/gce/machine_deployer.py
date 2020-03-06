@@ -91,9 +91,11 @@ class GCEMachineDeployer:
                     'initializeParams': {
                         'sourceImage': ('projects/cos-cloud/global/images/'
                                         'cos-stable-80-12739-91-0'),
-                        'diskType': 'projects/{}/zones/{}/diskTypes/pd-standard'.format(
-                            self.conf.project_id, self.zone),
-                        'diskSizeGb': '10'
+                        'diskType': 'projects/{}/zones/{}/diskTypes/{}'.format(
+                            self.conf.project_id, self.zone,
+                            self.machine.disk.boot_disk_type),
+                        'diskSizeGb': '{}'.format(
+                            self.machine.disk.boot_disk_size_gb)
                     },
                     'diskEncryptionKey': {}
                 }
