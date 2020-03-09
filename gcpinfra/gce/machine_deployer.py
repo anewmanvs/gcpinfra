@@ -93,9 +93,9 @@ class GCEMachineDeployer:
                                         'cos-stable-80-12739-91-0'),
                         'diskType': 'projects/{}/zones/{}/diskTypes/{}'.format(
                             self.conf.project_id, self.zone,
-                            self.machine.disk.boot_disk_type),
+                            self.machine.disk_config.boot_disk_type),
                         'diskSizeGb': '{}'.format(
-                            self.machine.disk.boot_disk_size_gb)
+                            self.machine.disk_config.boot_disk_size_gb)
                     },
                     'diskEncryptionKey': {}
                 }
