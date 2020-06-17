@@ -25,7 +25,7 @@ class GCECluster(GCPCore):
     """
 
     def __init__(self, cluster_name, master_config=None, worker_config=None,
-                 zone_uri=None, image=None):
+                 zone_uri=None, image=None, properties=None):
         """Constructor."""
 
         if not isinstance(cluster_name, str):
@@ -44,14 +44,22 @@ class GCECluster(GCPCore):
         if image is None:
             image = '1.3-deb9'
 
+        if properties is None:
+            properties = {}
+
         super().__init__()
         self.add_attr('cluster_name', cluster_name)
         config = {
             'gce_cluster_config': {'zone_uri': zone_uri},
             'master_config': self.master_config.get_rep(),
             'worker_config': self.worker_config.get_rep(),
-            'software_config': {'image_version': image},
-            'secondary_worker_config': {'num_instances': 0, 'is_preemptible': True}
+            'software_config': {
+                'image_version': image,
+                'properties': properties
+            },
+            'secondary_worker_config': {
+                'num_instances': 0, 'is_preemptible': True
+            }
         }
         self.add_attr('config', config)
 
