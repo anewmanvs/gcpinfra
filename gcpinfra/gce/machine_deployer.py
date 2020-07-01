@@ -16,7 +16,8 @@ class GCEMachineDeployer:
     Represents a machine deployer.
     """
 
-    def __init__(self, name, zone, machine, docker_image, restart_policy='Always'):
+    def __init__(self, name, zone, machine, docker_image, env=None,
+                 restart_policy='Always'):
         """Constructor."""
 
         self.conf = GCPConf()
@@ -27,6 +28,7 @@ class GCEMachineDeployer:
         self.docker_image = docker_image
         self.restart_policy = restart_policy
         self.region = self.__get_region()  # only after zone declaration
+        self.env = env
 
         if self.restart_policy not in ['OnFailure', 'Never', 'Always']:
             raise ValueError("Invalid 'restart_policy' value")
@@ -35,10 +37,34 @@ class GCEMachineDeployer:
             raise ValueError("Expected a machine 'GCEMachine' got '{}'".format(
                 type(self.machine)))
 
+        if self.env is not None and not isinstance(self.env, dict):
+            raise ValueError("Expected a 'dict' or 'NoneType' got '{}'".format(
+                type(self.env)))
+        elif self.env:
+            pitem = "        - name: {}\n          value: '{}'\n"
+            self.env = '      env:\n{}'.format(
+                ''.join([pitem.format(*l) for l in self.env.items()]))
+        else:
+            self.env = ''
+
     def __get_region(self):
         """Returns the region."""
 
         return '-'.join(self.zone.split('-')[:-1])
+
+    def __metadata_items(self):
+        """Retorna os itens de metadata."""
+
+        val = 'spec:\n  containers:\n    - name: {}\n      ' \
+              'image: {}\n{}      stdin: false\n      tty: ' \
+              'false\n  restartPolicy: {}\n\n# This container' \
+              ' declaration format is not public API and may ' \
+              'change without notice. Please\n# use gcloud ' \
+              'command-line tool or Google Cloud Console to ' \
+              'run Containers on Google Compute Engine.'.format(
+                 self.name, self.docker_image, self.env,
+                 self.restart_policy)
+        return val
 
     def instantiate(self):
         """Deploy a machine."""
@@ -63,15 +89,7 @@ class GCEMachineDeployer:
                 'items': [
                     {
                         'key': 'gce-container-declaration',
-                        'value': 'spec:\n  containers:\n    - name: {}\n      ' \
-                                 'image: {}\n      stdin: false\n      tty: ' \
-                                 'false\n  restartPolicy: {}\n\n# This container' \
-                                 ' declaration format is not public API and may ' \
-                                 'change without notice. Please\n# use gcloud ' \
-                                 'command-line tool or Google Cloud Console to ' \
-                                 'run Containers on Google Compute Engine.'.format(
-                                    self.name, self.docker_image,
-                                    self.restart_policy)
+                        'value': self.__metadata_items()
                     },
                     {
                         'key': 'google-logging-enabled',
