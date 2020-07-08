@@ -5,11 +5,16 @@ Deploy a GCE machine with the informed params
 """
 
 from googleapiclient import discovery
+from googleapiclient.errors import HttpError
 
 from gcpinfra.gcp.conf import GCPConf
 from gcpinfra.gce.conf import GCEMachine
 
 # pylint: disable=invalid-name
+
+VALID_STATUS = ['PROVISIONING', 'STAGING', 'RUNNING', 'STOPPING',
+                'SUSPENDING', 'SUSPENDED', 'REPAIRING', 'TERMINATED']
+DELETED = 'DELETED'
 
 class GCEMachineDeployer:
     """
@@ -29,6 +34,9 @@ class GCEMachineDeployer:
         self.restart_policy = restart_policy
         self.region = self.__get_region()  # only after zone declaration
         self.env = env
+        self.status_rep = None
+        self.status = None
+        self.was_instantiated = False
 
         if self.restart_policy not in ['OnFailure', 'Never', 'Always']:
             raise ValueError("Invalid 'restart_policy' value")
@@ -46,6 +54,8 @@ class GCEMachineDeployer:
                 ''.join([pitem.format(*l) for l in self.env.items()]))
         else:
             self.env = ''
+
+        self.compute = discovery.build('compute', 'v1')
 
     def __get_region(self):
         """Returns the region."""
@@ -69,10 +79,28 @@ class GCEMachineDeployer:
     def instantiate(self):
         """Deploy a machine."""
 
-        compute = discovery.build('compute', 'v1')
-        compute.instances().insert(
+        self.compute.instances().insert(
             project=self.conf.project_id, zone=self.zone,
             body=self.mount_representation()).execute()
+
+        self.get()
+        if self.status in VALID_STATUS:
+            self.was_instantiated = True
+
+    def get(self):
+        """Get updated representation."""
+
+        try:
+            self.status_rep = self.compute.instances().get(
+                project=self.conf.project_id, zone=self.zone,
+                instance=self.name).execute()
+            self.status = self.status_rep['status']
+        except HttpError as e:
+            self.status_rep = None
+            # check if this was instantiated at some point and the http return
+            # code is 404. If so, this instance was killed/deleted
+            if self.was_instantiated and int(e.resp['status']) == 404:
+                self.status = 'DELETED'
 
     def mount_representation(self):
         """Mount this object representation."""
