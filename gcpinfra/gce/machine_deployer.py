@@ -55,7 +55,13 @@ class GCEMachineDeployer:
         else:
             self.env = ''
 
-        self.compute = discovery.build('compute', 'v1')
+        while True:
+            try:
+                self.compute = discovery.build('compute', 'v1')
+            except HttpError as e:
+                if int(e.resp['status']) == 500:
+                    continue
+            break
 
     def __get_region(self):
         """Returns the region."""
@@ -79,13 +85,17 @@ class GCEMachineDeployer:
     def instantiate(self):
         """Deploy a machine."""
 
-        self.compute.instances().insert(
-            project=self.conf.project_id, zone=self.zone,
-            body=self.mount_representation()).execute()
+        try:
+            self.compute.instances().insert(
+                project=self.conf.project_id, zone=self.zone,
+                body=self.mount_representation()).execute()
 
-        self.get()
-        if self.status in VALID_STATUS:
-            self.was_instantiated = True
+            self.get()
+            if self.status in VALID_STATUS:
+                self.was_instantiated = True
+        except HttpError as e:
+            if int(e.resp['status']) == 500:
+                self.instantiate()  # tenta novamente em caso de erro 500
 
     def get(self):
         """Get updated representation."""
@@ -101,6 +111,8 @@ class GCEMachineDeployer:
             # code is 404. If so, this instance was killed/deleted
             if self.was_instantiated and int(e.resp['status']) == 404:
                 self.status = 'DELETED'
+            elif int(e.resp['status']) == 500:
+                self.get()  # tenta novamente em caso de erro 500
 
     def mount_representation(self):
         """Mount this object representation."""
