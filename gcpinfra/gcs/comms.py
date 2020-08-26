@@ -133,9 +133,10 @@ class GCSComms:
                                                 delimiter=delimiter)
         return list(_blobs)
 
-    def find_blobs_by_regex(self, regex, flags=0):
+    def find_blobs_by_regex(self, regex, flags=0, prefix=None, delimiter=None):
         """
-        Find blobs by refex.
+        Find blobs by refex. Use prefix and delimiter to speed up the process
+        and travel less data over the network.
 
         In GCS there is no such thing as a directory. Dirs or folders are just
         prefixes of objects
@@ -144,7 +145,7 @@ class GCSComms:
         contained in the bucket.
         """
 
-        _all = list(self.storage_client.list_blobs(self.bucketname))
+        _all = self.find_blobs_by_prefix(prefix, delimiter=delimiter)
         pttn = re.compile(regex, flags=flags)
         res = []
         for blob in _all:
