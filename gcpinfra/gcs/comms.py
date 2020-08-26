@@ -9,6 +9,7 @@ In case of errors, re-raise exceptions sent by Google.
 
 # pylint: disable=invalid-name, try-except-raise
 
+import re
 import base64
 from hashlib import md5
 from datetime import datetime
@@ -116,9 +117,10 @@ class GCSComms:
 
         blob.delete()
 
-    def find_blobs_by_prefix(self, prefix):
+    def find_blobs_by_prefix(self, prefix, delimiter=None):
         """
-        Find blobs by prefix.
+        Find blobs by prefix. One can also pass a delimiter to emulate
+        hierarchy.
 
         In GCS there is no such thing as a directory. Dirs or folders are just
         prefixes of objects
@@ -127,11 +129,28 @@ class GCSComms:
         contained in the prefix.
         """
 
-        blobs = []
-        _blobs = self.storage_client.list_blobs(self.bucketname, prefix=prefix)
-        for _blob in _blobs:
-            blobs.append(_blob)
-        return blobs
+        _blobs = self.storage_client.list_blobs(self.bucketname, prefix=prefix,
+                                                delimiter=delimiter)
+        return list(_blobs)
+
+    def find_blobs_by_regex(self, regex, flags=0):
+        """
+        Find blobs by refex.
+
+        In GCS there is no such thing as a directory. Dirs or folders are just
+        prefixes of objects
+
+        Also bear in mind that this method gets slower the more objects are
+        contained in the bucket.
+        """
+
+        _all = list(self.storage_client.list_blobs(self.bucketname))
+        pttn = re.compile(regex, flags=flags)
+        res = []
+        for blob in _all:
+            if pttn.search(blob.name):
+                res.append(blob)
+        return res
 
     def delete_multiples(self, bloblist):
         """
