@@ -6,6 +6,7 @@ Deploy a GCE machine with the informed params
 
 from googleapiclient import discovery
 from googleapiclient.errors import HttpError
+rom google.auth.exceptions import TransportError
 
 from gcpinfra.gcp.conf import GCPConf
 from gcpinfra.gce.conf import GCEMachine
@@ -61,6 +62,9 @@ class GCEMachineDeployer:
             except HttpError as e:
                 if int(e.resp['status']) == 500:
                     continue
+            except TransportError:
+                continue
+
             break
 
     def __get_region(self):
@@ -95,7 +99,9 @@ class GCEMachineDeployer:
                 self.was_instantiated = True
         except HttpError as e:
             if int(e.resp['status']) == 500:
-                self.instantiate()  # tenta novamente em caso de erro 500
+                self.instantiate()  # try again in case of error 500
+        except TransportError:
+            self.instantiate()
 
     def get(self):
         """Get updated representation."""
@@ -112,7 +118,9 @@ class GCEMachineDeployer:
             if self.was_instantiated and int(e.resp['status']) == 404:
                 self.status = 'DELETED'
             elif int(e.resp['status']) == 500:
-                self.get()  # tenta novamente em caso de erro 500
+                self.get()  # try again in case of error 500
+        except TransportError:
+            self.get()
 
     def mount_representation(self):
         """Mount this object representation."""
