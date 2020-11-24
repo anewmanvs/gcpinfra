@@ -4,7 +4,7 @@ import setuptools
 
 # pylint: disable=invalid-name
 
-version='0.6.1'
+version='0.6.2'
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
