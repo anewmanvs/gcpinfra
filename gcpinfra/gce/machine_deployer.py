@@ -6,7 +6,7 @@ Deploy a GCE machine with the informed params
 
 from googleapiclient import discovery
 from googleapiclient.errors import HttpError
-rom google.auth.exceptions import TransportError
+from google.auth.exceptions import TransportError
 
 from gcpinfra.gcp.conf import GCPConf
 from gcpinfra.gce.conf import GCEMachine
