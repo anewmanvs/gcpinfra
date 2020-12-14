@@ -23,7 +23,7 @@ class GCEMachineDeployer:
     """
 
     def __init__(self, name, zone, machine, docker_image, env=None,
-                 restart_policy='Always'):
+                 restart_policy='Always', subnetwork=None, external_ip=True):
         """Constructor."""
 
         self.conf = GCPConf()
@@ -38,6 +38,8 @@ class GCEMachineDeployer:
         self.status_rep = None
         self.status = None
         self.was_instantiated = False
+        self.subnetwork = 'default' if subnetwork is None else subnetwork
+        self.external_ip = external_ip
 
         if self.restart_policy not in ['OnFailure', 'Never', 'Always']:
             raise ValueError("Invalid 'restart_policy' value")
@@ -156,7 +158,7 @@ class GCEMachineDeployer:
                     'deviceName': self.name,
                     'initializeParams': {
                         'sourceImage': ('projects/cos-cloud/global/images/'
-                                        'cos-stable-80-12739-91-0'),
+                                        'cos-stable-85-13310-1041-38'),
                         'diskType': 'projects/{}/zones/{}/diskTypes/{}'.format(
                             self.conf.project_id, self.zone,
                             self.machine.disk_config.boot_disk_type),
@@ -170,21 +172,13 @@ class GCEMachineDeployer:
             'networkInterfaces': [
                 {
                     'kind': 'compute#networkInterface',
-                    'subnetwork': 'projects/{}/regions/{}/subnetworks/default'.format(
-                        self.conf.project_id, self.region),
-                    'accessConfigs': [
-                        {
-                            'kind': 'compute#accessConfig',
-                            'name': 'External NAT',
-                            'type': 'ONE_TO_ONE_NAT',
-                            'networkTier': 'PREMIUM'
-                        }
-                    ],
+                    'subnetwork': 'projects/{}/regions/{}/subnetworks/{}'.format(
+                        self.conf.project_id, self.region, self.subnetwork),
                     'aliasIpRanges': []
                 }
             ],
             'description': '',
-            'labels': {'container-vm': 'cos-stable-80-12739-91-0'},
+            'labels': {'container-vm': 'cos-stable-85-13310-1041-38'},
             'scheduling': {
                 'preemptible': False,
                 'onHostMaintenance': 'MIGRATE',
@@ -205,4 +199,12 @@ class GCEMachineDeployer:
                 'enableIntegrityMonitoring': True
             }
         }
+
+        if self.external_ip:
+            _rep['networkInterfaces'][0].update(
+                {'accessConfigs': [{'kind': 'compute#accessConfig',
+                    'name': 'External NAT',
+                    'type': 'ONE_TO_ONE_NAT',
+                    'networkTier': 'PREMIUM'}]})
+
         return _rep
