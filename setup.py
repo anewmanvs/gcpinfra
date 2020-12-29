@@ -32,7 +32,7 @@ setuptools.setup(
     install_requires=[
         'pandas>=1.0.1',
         'setuptools>=36.5.0',
-        'google-cloud-storage>=1.26.0',
+        'google-cloud-storage>=1.35.0',
         'google-cloud-dataproc>=0.6.1',
         'google-auth>=1.11.2',
         'crc32c>=2.0',

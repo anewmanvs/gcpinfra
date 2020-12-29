@@ -31,7 +31,7 @@ class GCPConf:
     class __GCPConf:
         """Internal class."""
 
-        def __init__(self, path, verbose):
+        def __init__(self, path, verbose, region):
             """Construtor da classe interna."""
 
             self.__valid = False
@@ -64,17 +64,17 @@ class GCPConf:
             # set credentials
             self.scopes = ['https://www.googleapis.com/auth/cloud-platform']
             self.credentials, self.project_id = default(scopes=self.scopes)
-            self.std_region = 'southamerica-east1'
+            self.std_region = region
             # call this only after std_region
             self.std_zone_uri = self.__get_std_zone()
             self.std_zone = self.get_zone_name(self.std_zone_uri)
             # if both are None inform a standard
             if self.std_zone is None:
-                self.std_zone = 'southamerica-east1-a'
+                self.std_zone = '{}-a'.format(self.std_region)
             if self.std_zone_uri is None:
                 self.std_zone_uri = ('https://www.googleapis.com/compute/v1/'
-                                     'projects/gm-mateus-estat/zones/southamerica'
-                                     '-east1-a')
+                                     'projects/gm-mateus-estat/zones/{}'.format(
+                                        self.std_zone))
 
         def __print(self, msg):
             """Prints message if verbose is set."""
@@ -142,11 +142,11 @@ class GCPConf:
             match = re.match('.+/zones/(.+)', std_zone_uri)
             return match.group(1)  # if this fails, the URI has changed
 
-    def __init__(self, path=None, verbose=False):
+    def __init__(self, path=None, verbose=False, region='southamerica-east1'):
         """Construtor singleton."""
 
         if not GCPConf.__instance:
-            GCPConf.__instance = GCPConf.__GCPConf(path, verbose)
+            GCPConf.__instance = GCPConf.__GCPConf(path, verbose, region)
         elif verbose:
             print('Using same GCPConf in {}'.format(GCPConf.__instance.path))
 
